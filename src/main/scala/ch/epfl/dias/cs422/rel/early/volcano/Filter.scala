@@ -29,15 +29,30 @@ class Filter protected (
   /**
     * @inheritdoc
     */
-  override def open(): Unit = ???
+  override def open(): Unit = input.open()
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] = ???
+  override def next(): Option[Tuple] =
+    {
+      //if(!input.iterator.hasNext)
+      //return NilTuple //gives inf loop
+      val next_tuple = input.next()
+      if(next_tuple == NilTuple){
+        NilTuple
+        //no more input
+      } else {
+        //
+        if(predicate(next_tuple.get))
+          next_tuple
+        else this.next() //??
+      }
+
+    }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def close(): Unit = input.close()
 }

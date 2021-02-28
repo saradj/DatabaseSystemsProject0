@@ -20,16 +20,14 @@ class Aggregate protected (
     ](input, groupSet, aggCalls)
     with ch.epfl.dias.cs422.helpers.rel.early.volcano.Operator {
 
-  /**
+    /**
     * @inheritdoc
     */
   override def open(): Unit = ???
-
   /**
     * @inheritdoc
     */
   override def next(): Option[Tuple] = ???
-
   /**
     * @inheritdoc
     */

@@ -1,7 +1,7 @@
 package ch.epfl.dias.cs422.rel.early.volcano
 
 import ch.epfl.dias.cs422.helpers.builder.skeleton
-import ch.epfl.dias.cs422.helpers.rel.RelOperator.Tuple
+import ch.epfl.dias.cs422.helpers.rel.RelOperator.{NilTuple, Tuple}
 import org.apache.calcite.rel.`type`.RelDataType
 import org.apache.calcite.rex.RexNode
 
@@ -20,6 +20,7 @@ class Project protected (
       ch.epfl.dias.cs422.helpers.rel.early.volcano.Operator
     ](input, projects, rowType)
     with ch.epfl.dias.cs422.helpers.rel.early.volcano.Operator {
+  protected var iter: Iterator[Tuple] = _
 
   /**
     * Function that, when given a (non-NilTuple) tuple produced by the [[input]] operator,
@@ -31,15 +32,28 @@ class Project protected (
   /**
     * @inheritdoc
     */
-  override def open(): Unit = ???
+  override def open(): Unit =input.open()
+
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] = ???
+  override def next(): Option[Tuple] =
+
+  {
+    val next_tuple = input.next()
+    if(next_tuple == NilTuple){
+      NilTuple
+      //no more input
+    } else {
+      //
+      Some(evaluator(next_tuple.get))
+    }
+//
+  }
 
   /**
     * @inheritdoc
     */
-  override def close(): Unit = ???
+  override def close(): Unit = input.close()
 }
