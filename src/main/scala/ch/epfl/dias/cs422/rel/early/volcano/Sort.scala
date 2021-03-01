@@ -30,12 +30,12 @@ class Sort protected (
     * @inheritdoc
     */
   override def open(): Unit = {
-    for (tuple <- input.iterator) { // .toList.slice(offset.getOrElse(0), offset.getOrElse(0) + fetch.getOrElse(0)) ON THE ITTER to optimize TODO
+    for (tuple <- input.iterator.toList.slice(
+      offset.getOrElse(0),
+      offset.getOrElse(0) + fetch.getOrElse(Integer.MAX_VALUE))) { // .toList.slice(offset.getOrElse(0), offset.getOrElse(0) + fetch.getOrElse(0)) ON THE ITTER to optimize TODO
       sorted_input += Sorted(tuple, collation)
     }
-    sorted_input = sorted_input.slice(
-      offset.getOrElse(0),
-      offset.getOrElse(0) + fetch.getOrElse(Integer.MAX_VALUE))
+    //sorted_input = sorted_input
     iter = sorted_input.iterator
 
   }
