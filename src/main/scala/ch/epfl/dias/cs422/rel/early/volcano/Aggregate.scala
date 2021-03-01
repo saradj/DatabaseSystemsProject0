@@ -66,10 +66,13 @@ class Aggregate protected (
         .toIndexedSeq
 
     } else {
-      processed = IndexedSeq(for (agg_call <- aggCalls) yield {
+      processed = IndexedSeq(aggCalls.map(agg_call =>
         in_seq.init.foldLeft(agg_call.getArgument(in_seq.last))((acc, tuple) =>
-          agg_call.reduce(acc, agg_call.getArgument(tuple)))
-      })
+          agg_call.reduce(acc, agg_call.getArgument(tuple)))))
+//        for (agg_call <- aggCalls) yield {
+//        in_seq.init.foldLeft(agg_call.getArgument(in_seq.last))((acc, tuple) =>
+//          agg_call.reduce(acc, agg_call.getArgument(tuple)))
+//      })
 
     }
   }

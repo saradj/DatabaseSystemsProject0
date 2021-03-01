@@ -23,19 +23,20 @@ class Sort protected (
     ](input, collation, offset, fetch)
     with ch.epfl.dias.cs422.helpers.rel.early.volcano.Operator {
 
-  var sorted_input: SortedSet[Sorted] = SortedSet()
-  var iter: Iterator[Sorted] = sorted_input.iterator
+  var sorted_input: SortedSet[Sorted] = _
+  var iter: Iterator[Sorted] = _
 
   /**
     * @inheritdoc
     */
   override def open(): Unit = {
-    for (tuple <- input.iterator.toList.slice(
-      offset.getOrElse(0),
-      offset.getOrElse(0) + fetch.getOrElse(Integer.MAX_VALUE))) { // .toList.slice(offset.getOrElse(0), offset.getOrElse(0) + fetch.getOrElse(0)) ON THE ITTER to optimize TODO
+    sorted_input = SortedSet()
+    for (tuple <- input.iterator) { // .toList.slice(offset.getOrElse(0), offset.getOrElse(0) + fetch.getOrElse(0)) ON THE ITTER to optimize TODO
       sorted_input += Sorted(tuple, collation)
     }
-    //sorted_input = sorted_input
+    sorted_input = sorted_input.slice(
+      offset.getOrElse(0),
+      offset.getOrElse(0) + fetch.getOrElse(Integer.MAX_VALUE))
     iter = sorted_input.iterator
 
   }
