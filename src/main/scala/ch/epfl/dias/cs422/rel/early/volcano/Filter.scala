@@ -23,7 +23,8 @@ class Filter protected (
     */
   lazy val predicate: Tuple => Boolean = {
     val evaluator = eval(condition, input.getRowType)
-    (t: Tuple) => evaluator(t).asInstanceOf[Boolean]
+    (t: Tuple) =>
+      evaluator(t).asInstanceOf[Boolean]
   }
 
   /**
@@ -34,22 +35,20 @@ class Filter protected (
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] =
-    {
-      //if(!input.iterator.hasNext)
-      //return NilTuple //gives inf loop
-      val next_tuple = input.next()
-      if(next_tuple == NilTuple){
-        NilTuple
-        //no more input
-      } else {
-        //
-        if(predicate(next_tuple.get))
-          next_tuple
-        else this.next() //??
-      }
+  override def next(): Option[Tuple] = {
 
+    val next_tuple = input.next()
+    if (next_tuple == NilTuple) {
+      NilTuple
+      //no more input
+    } else {
+      //
+      if (predicate(next_tuple.get))
+        next_tuple
+      else this.next()
     }
+
+  }
 
   /**
     * @inheritdoc

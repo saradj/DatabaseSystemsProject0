@@ -32,17 +32,14 @@ class Project protected (
   /**
     * @inheritdoc
     */
-  override def open(): Unit =input.open()
-
+  override def open(): Unit = input.open()
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] =
-
-  {
+  override def next(): Option[Tuple] = {
     val next_tuple = input.next()
-    if(next_tuple == NilTuple){
+    if (next_tuple == NilTuple) {
       NilTuple
       //no more input
     } else {
