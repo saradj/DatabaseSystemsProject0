@@ -32,7 +32,8 @@ class Scan protected (
   )
 
   protected var row_index: Int = 0
-  protected var table_store : IndexedSeq[Tuple] = _
+  protected var storage : IndexedSeq[Tuple] = _
+  protected var row_count = 0
 
   /**
     * Helper function (you do not have to use it or implement it)
@@ -53,11 +54,11 @@ class Scan protected (
     */
   override def open(): Unit = {
     row_index = 0
-    table_store = IndexedSeq[Tuple]()
-
-    for(i <- 0 until scannable.getRowCount.asInstanceOf[Int])
+    storage = IndexedSeq[Tuple]()
+    row_count = scannable.getRowCount.asInstanceOf[Int]
+    for(i <- 0 until row_count)
     {
-      table_store = table_store :+ scannable.asInstanceOf[RowStore].getRow(i)
+      storage = storage :+ scannable.asInstanceOf[RowStore].getRow(i)
     }
   }; //TODO STORE IN A TABLE TO OPTIMIZE MAYBE
 
@@ -67,9 +68,9 @@ class Scan protected (
   override def next(): Option[Tuple] = {
     var res: Option[Tuple] = NilTuple
 
-    if (row_index < scannable.getRowCount) {
-      res = Some(IndexedSeq[Any]())
-      res = Some(table_store(row_index))
+    if (row_index < row_count) {
+      //res = Some(IndexedSeq[Any]())
+      res = Some(storage(row_index))
       row_index += 1
     }
     res
