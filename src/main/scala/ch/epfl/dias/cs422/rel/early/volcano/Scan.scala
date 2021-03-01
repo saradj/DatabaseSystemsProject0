@@ -32,6 +32,7 @@ class Scan protected (
   )
 
   protected var row_index: Int = 0
+  protected var table_store : IndexedSeq[Tuple] = _
 
   /**
     * Helper function (you do not have to use it or implement it)
@@ -50,8 +51,15 @@ class Scan protected (
   /**
     * @inheritdoc
     */
-  override def open(): Unit =
-    row_index = 0; //TODO STORE IN A TABLE TO OPTIMIZE MAYBE
+  override def open(): Unit = {
+    row_index = 0
+    table_store = IndexedSeq[Tuple]()
+
+    for(i <- 0 until scannable.getRowCount.asInstanceOf[Int])
+    {
+      table_store = table_store :+ scannable.asInstanceOf[RowStore].getRow(i)
+    }
+  }; //TODO STORE IN A TABLE TO OPTIMIZE MAYBE
 
   /**
     * @inheritdoc
@@ -61,9 +69,8 @@ class Scan protected (
 
     if (row_index < scannable.getRowCount) {
       res = Some(IndexedSeq[Any]())
-      res = Some(scannable.asInstanceOf[RowStore].getRow(row_index))
+      res = Some(table_store(row_index))
       row_index += 1
-
     }
     res
 
