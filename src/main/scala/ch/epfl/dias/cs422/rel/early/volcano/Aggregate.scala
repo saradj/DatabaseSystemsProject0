@@ -53,26 +53,16 @@ class Aggregate protected (
           case (cnt: IndexedSeq[Any], seq_tuples: IndexedSeq[Tuple]) =>
             (cnt,
              cnt ++
-//              (for (aggCall <- aggCalls) yield {
-//                (acc, tuple) => aggCall.reduce(acc, aggCall.getArgument(tuple)))
-//            })
-               aggCalls.map(aggCall =>
-                 seq_tuples.init.foldLeft(aggCall.getArgument(seq_tuples.last))(
-                   (acc, tuple) =>
-                     aggCall.reduce(acc, aggCall.getArgument(tuple)))))
-        }
-        .values
-        .map { case value: IndexedSeq[Any] => value }
-        .toIndexedSeq
+               (for(call <- aggCalls) yield { seq_tuples.init.foldLeft(call.getArgument(seq_tuples.last))((acc, tuple) => call.reduce(acc, call.getArgument(tuple)))
+               }))
+        }.values.map{case v : IndexedSeq[Any] => v}.toIndexedSeq
 
     } else {
-      processed = IndexedSeq(aggCalls.map(agg_call =>
+      processed = IndexedSeq(
+        for (agg_call <- aggCalls) yield {
         in_seq.init.foldLeft(agg_call.getArgument(in_seq.last))((acc, tuple) =>
-          agg_call.reduce(acc, agg_call.getArgument(tuple)))))
-//        for (agg_call <- aggCalls) yield {
-//        in_seq.init.foldLeft(agg_call.getArgument(in_seq.last))((acc, tuple) =>
-//          agg_call.reduce(acc, agg_call.getArgument(tuple)))
-//      })
+          agg_call.reduce(acc, agg_call.getArgument(tuple)))
+      })
 
     }
   }
