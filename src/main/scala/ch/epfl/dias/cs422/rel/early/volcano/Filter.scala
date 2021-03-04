@@ -42,7 +42,6 @@ class Filter protected (
       NilTuple
       //no more input
     } else {
-      //
       if (predicate(next_tuple.get)) //check the predicate
         next_tuple
       else this.next()
