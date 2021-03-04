@@ -75,6 +75,7 @@ class Join(
           case null     => NilTuple
           case _        => next()
         }
+        
       case Seq(head, tail @ _*) =>
         val tmp: IndexedSeq[Elem] = head ++ curr_right
         res_stored = tail
