@@ -40,10 +40,10 @@ class Aggregate protected (
       })
     if (in_seq.isEmpty && idx_groups.isEmpty) {
       processed = IndexedSeq(
-        //for (aggCall <- aggCalls) yield {
-        // aggCall.emptyValue
-        // }
-        aggCalls.map(_.emptyValue)
+        for (aggCall <- aggCalls) yield {
+         aggCall.emptyValue
+         }
+        //aggCalls.map(_.emptyValue)
       )
     } else if (in_seq.isEmpty) { //only in_seq non-empty
       IndexedSeq()
