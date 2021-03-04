@@ -50,10 +50,10 @@ class Aggregate protected (
           case (cnt: IndexedSeq[Any], seq_tuples: IndexedSeq[Tuple]) =>
             (cnt,
              cnt ++
-               (for (call <- aggCalls) yield {
+               aggCalls.map {call=>
                  seq_tuples.init.foldLeft(call.getArgument(seq_tuples.last))(
                    (acc, tuple) => call.reduce(acc, call.getArgument(tuple)))
-               }))
+               })
         }
         .values
         .toIndexedSeq
