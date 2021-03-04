@@ -2,10 +2,7 @@ package ch.epfl.dias.cs422.rel.early.volcano
 
 import ch.epfl.dias.cs422.helpers.builder.skeleton
 import ch.epfl.dias.cs422.helpers.rel.RelOperator.{NilTuple, Tuple}
-import org.apache.calcite.rel.RelFieldCollation.Direction
 import org.apache.calcite.rel.{RelCollation, RelFieldCollation}
-
-import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
 
 /**
   * @inheritdoc
@@ -22,47 +19,43 @@ class Sort protected (
     ](input, collation, offset, fetch)
     with ch.epfl.dias.cs422.helpers.rel.early.volcano.Operator {
 
-  var table: IndexedSeq[Tuple] = IndexedSeq()
-  var index = 0
-  var limit = Integer.MAX_VALUE
+  var limit: Int = Integer.MAX_VALUE
+
+  var stored: IndexedSeq[Tuple] = IndexedSeq()
+  var idx: Int = 0
 
   /**
     * @inheritdoc
     */
   override def open(): Unit = {
-    if (fetch != None) {
       limit = fetch.getOrElse(Integer.MAX_VALUE)
       if (limit == 0) {
         return
       }
-    }
-    index = 0
+    idx = 0
     input.open()
 
-    var row = input.next()
-    if (row == NilTuple)  {
-      table = null
-    }
-    while (row != NilTuple) {
-      table :+= row.get
-      row = input.next()
+    var next_tuple = input.next()
+    while (next_tuple != NilTuple) {
+      stored :+= next_tuple.get
+      next_tuple = input.next()
     }
 
-    val field_collations = collation.getFieldCollations
+    val collations = collation.getFieldCollations
 
-    for (i <- collation.getFieldCollations.size()-1 to 0 by -1) {
-      table = table.sortWith((t1, t2) => {
-        if (field_collations.get(i).shortString() == "DESC") {
-          RelFieldCollation.compare(t1(field_collations.get(i).getFieldIndex).asInstanceOf[Comparable[_]], t2(field_collations.get(i).getFieldIndex).asInstanceOf[Comparable[_]], 0) > 0
+    for (index <- (collation.getFieldCollations.size()-1 to 0 by -1)) {
+      stored = stored.sortWith((t1, t2) => {
+        if (collations.get(index).shortString() == "DESC") {
+          RelFieldCollation.compare(t1(collations.get(index).getFieldIndex).asInstanceOf[Comparable[_]], t2(collations.get(index).getFieldIndex).asInstanceOf[Comparable[_]], 0) > 0
         } else {
-          RelFieldCollation.compare(t1(field_collations.get(i).getFieldIndex).asInstanceOf[Comparable[_]], t2(field_collations.get(i).getFieldIndex).asInstanceOf[Comparable[_]], 0) < 0
+          RelFieldCollation.compare(t1(collations.get(index).getFieldIndex).asInstanceOf[Comparable[_]], t2(collations.get(index).getFieldIndex).asInstanceOf[Comparable[_]], 0) < 0
         }
       })
     }
 
-    if (offset != None) {
-      index = offset.getOrElse(0)
-    }
+
+      idx = offset.getOrElse(0)
+
   }
 
 
@@ -70,13 +63,13 @@ class Sort protected (
     * @inheritdoc
     */
   override def next(): Option[Tuple] ={
-    if (table == null || index >= table.size || limit == 0)  {
+    if (stored == null || idx >= stored.size || limit == 0)  {
       return NilTuple
     }
-    val row = table(index)
-    index += 1
+    val next_tuple = stored(idx)
+    idx += 1
     limit -= 1
-    Some(row)
+    Some(next_tuple)
   }
 
   /**
@@ -87,40 +80,4 @@ class Sort protected (
     input.close()
   }
 
-}
-class Sorted(tuple: Tuple, collation: RelCollation) extends Ordered[Sorted] {
-
-  def getTuple: Tuple = tuple
-  def getCollation: RelCollation = collation
-
-  def get(i: Int) = tuple(i)
-
-  def compare(that: Sorted): Int = {
-    helper_rec(that, collation.getFieldCollations.toSeq)
-  }
-
-  def helper_rec(other: Sorted,
-                 field_collation_seq: Seq[RelFieldCollation]): Int =
-    field_collation_seq match {
-      case Seq() => 0
-      case Seq(head: RelFieldCollation, tail @ _*) =>
-        val idx: Int = head.getFieldIndex
-        val (a, b) = (get(idx).asInstanceOf[Comparable[Any]],
-                      other.get(idx).asInstanceOf[Comparable[Any]])
-        (head.direction match {
-          case Direction.ASCENDING | Direction.STRICTLY_ASCENDING =>
-            a.compareTo(b)
-          case Direction.DESCENDING | Direction.STRICTLY_DESCENDING =>
-            b.compareTo(a)
-          case _ => throw new Exception("Not a valid sorting direction")
-        }) match {
-          case 0 => helper_rec(other, tail)
-          case r => r
-        }
-    }
-}
-
-object Sorted {
-  def apply(tuple: Tuple, collation: RelCollation): Sorted =
-    new Sorted(tuple, collation)
 }
