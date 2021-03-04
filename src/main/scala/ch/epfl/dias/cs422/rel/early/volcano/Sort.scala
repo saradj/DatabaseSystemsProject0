@@ -6,7 +6,6 @@ import org.apache.calcite.rel.RelFieldCollation.Direction
 import org.apache.calcite.rel.{RelCollation, RelFieldCollation}
 
 import scala.collection.convert.ImplicitConversions.`collection AsScalaIterable`
-import scala.collection.mutable.SortedSet
 
 /**
   * @inheritdoc
@@ -23,35 +22,61 @@ class Sort protected (
     ](input, collation, offset, fetch)
     with ch.epfl.dias.cs422.helpers.rel.early.volcano.Operator {
 
-  var sorted_input: SortedSet[Sorted] = _
-  var iter: Iterator[Sorted] = _
+  var table: IndexedSeq[Tuple] = IndexedSeq()
+  var index = 0
+  var limit = Integer.MAX_VALUE
 
   /**
     * @inheritdoc
     */
   override def open(): Unit = {
-    sorted_input = SortedSet()
-    val full = input.iterator.toList.slice(offset.getOrElse(0), offset.getOrElse(0) + fetch.getOrElse(Integer.MAX_VALUE))
-    for (tuple <- full) { // .toList.slice(offset.getOrElse(0), offset.getOrElse(0) + fetch.getOrElse(0)) ON THE ITTER to optimize TODO
-      sorted_input += Sorted(tuple, collation)
+    if (fetch != None) {
+      limit = fetch.getOrElse(Integer.MAX_VALUE)
+      if (limit == 0) {
+        return
+      }
     }
-    sorted_input = sorted_input
-//      .slice(
-//      offset.getOrElse(0),
-//      offset.getOrElse(0) + fetch.getOrElse(Integer.MAX_VALUE))
-    iter = sorted_input.iterator
+    index = 0
+    input.open()
 
+    var row = input.next()
+    if (row == NilTuple)  {
+      table = null
+    }
+    while (row != NilTuple) {
+      table :+= row.get
+      row = input.next()
+    }
+
+    val field_collations = collation.getFieldCollations
+
+    for (i <- collation.getFieldCollations.size()-1 to 0 by -1) {
+      table = table.sortWith((t1, t2) => {
+        if (field_collations.get(i).shortString() == "DESC") {
+          RelFieldCollation.compare(t1(field_collations.get(i).getFieldIndex).asInstanceOf[Comparable[_]], t2(field_collations.get(i).getFieldIndex).asInstanceOf[Comparable[_]], 0) > 0
+        } else {
+          RelFieldCollation.compare(t1(field_collations.get(i).getFieldIndex).asInstanceOf[Comparable[_]], t2(field_collations.get(i).getFieldIndex).asInstanceOf[Comparable[_]], 0) < 0
+        }
+      })
+    }
+
+    if (offset != None) {
+      index = offset.getOrElse(0)
+    }
   }
+
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] = {
-    var res: Option[Tuple] = NilTuple
-    if (iter.hasNext) {
-      res = Some(iter.next().getTuple)
+  override def next(): Option[Tuple] ={
+    if (table == null || index >= table.size || limit == 0)  {
+      return NilTuple
     }
-    res
+    val row = table(index)
+    index += 1
+    limit -= 1
+    Some(row)
   }
 
   /**
