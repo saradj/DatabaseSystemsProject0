@@ -38,28 +38,28 @@ class Aggregate protected (
         idx_groups.map {
           t(_)
       })
-    if (in_seq.isEmpty && idx_groups.isEmpty) {
+    if (in_seq.isEmpty && idx_groups.isEmpty) { //input empty and group class empty
       processed = IndexedSeq(
-        //for (aggCall <- aggCalls) yield {
-         //aggCall.emptyValue
-        // }
         aggCalls.map(_.emptyValue)
       )
-    } else if (in_seq.isEmpty) { //only in_seq non-empty
-      IndexedSeq()
+    } else if (in_seq.isEmpty) { // in_seq is empty => processed = empty sequence
+      processed = IndexedSeq()
     } else if (idx_groups.nonEmpty) { //both non-empty
       processed = map_grouped_by
         .map {
           case (cnt: IndexedSeq[Any], seq_tuples: IndexedSeq[Tuple]) =>
             (cnt,
              cnt ++
-               (for(call <- aggCalls) yield { seq_tuples.init.foldLeft(call.getArgument(seq_tuples.last))((acc, tuple) => call.reduce(acc, call.getArgument(tuple)))
+               (for (call <- aggCalls) yield {
+                 seq_tuples.init.foldLeft(call.getArgument(seq_tuples.last))(
+                   (acc, tuple) => call.reduce(acc, call.getArgument(tuple)))
                }))
-        }.values.map{case v : IndexedSeq[Any] => v}.toIndexedSeq
+        }
+        .values
+        .toIndexedSeq
 
-    } else {
-      processed = IndexedSeq(
-        for (agg_call <- aggCalls) yield {
+    } else { // if only idx_groups are empty
+      processed = IndexedSeq(for (agg_call <- aggCalls) yield {
         in_seq.init.foldLeft(agg_call.getArgument(in_seq.last))((acc, tuple) =>
           agg_call.reduce(acc, agg_call.getArgument(tuple)))
       })
@@ -73,7 +73,7 @@ class Aggregate protected (
   override def next(): Option[Tuple] = {
     var next_tuple: Option[Tuple] = NilTuple
     if (idx < processed.size && idx >= 0) {
-      next_tuple = Some(processed(idx))
+      next_tuple = Some(processed(idx)) //get the next aggregated tuple
       idx += 1
     }
     next_tuple

@@ -25,7 +25,7 @@ class Join(
   private val r_keys: IndexedSeq[Int] = getRightKeys
   private var curr_right: Tuple = IndexedSeq()
   private var res_stored: Seq[Tuple] = IndexedSeq()
-  private var hash_table: Map[Int, List[Tuple]] = Map()
+  private var hash_table: Map[Int, List[Tuple]] = Map() //implementing hashJoin
 
   private def get_tuple_hash_code(tuple: Tuple, keys: IndexedSeq[Int]): Int =
     keys.map(tuple(_)).hashCode()

@@ -20,18 +20,17 @@ class Sort protected (
     with ch.epfl.dias.cs422.helpers.rel.early.volcano.Operator {
 
   var limit: Int = Integer.MAX_VALUE
-
-  var stored: IndexedSeq[Tuple] = IndexedSeq()
   var idx: Int = 0
+  var stored: IndexedSeq[Tuple] = IndexedSeq()
 
   /**
     * @inheritdoc
     */
   override def open(): Unit = {
-      limit = fetch.getOrElse(Integer.MAX_VALUE)
-      if (limit == 0) {
-        return
-      }
+    limit = fetch.getOrElse(Integer.MAX_VALUE)
+    if (limit == 0) {
+      return
+    }
     idx = 0
     input.open()
 
@@ -43,27 +42,30 @@ class Sort protected (
 
     val collations = collation.getFieldCollations
 
-    for (index <- (collation.getFieldCollations.size()-1 to 0 by -1)) {
+    for (index <- (collation.getFieldCollations.size() - 1 to 0 by -1)) {
       stored = stored.sortWith((t1, t2) => {
         if (collations.get(index).shortString() == "DESC") {
-          RelFieldCollation.compare(t1(collations.get(index).getFieldIndex).asInstanceOf[Comparable[_]], t2(collations.get(index).getFieldIndex).asInstanceOf[Comparable[_]], 0) > 0
+          RelFieldCollation.compare(
+            t1(collations.get(index).getFieldIndex).asInstanceOf[Comparable[_]],
+            t2(collations.get(index).getFieldIndex).asInstanceOf[Comparable[_]],
+            0) > 0
         } else {
-          RelFieldCollation.compare(t1(collations.get(index).getFieldIndex).asInstanceOf[Comparable[_]], t2(collations.get(index).getFieldIndex).asInstanceOf[Comparable[_]], 0) < 0
+          RelFieldCollation.compare(
+            t1(collations.get(index).getFieldIndex).asInstanceOf[Comparable[_]],
+            t2(collations.get(index).getFieldIndex).asInstanceOf[Comparable[_]],
+            0) < 0
         }
       })
     }
-
-
-      idx = offset.getOrElse(0)
+    idx = offset.getOrElse(0)
 
   }
-
 
   /**
     * @inheritdoc
     */
-  override def next(): Option[Tuple] ={
-    if (stored == null || idx >= stored.size || limit == 0)  {
+  override def next(): Option[Tuple] = {
+    if (stored == null || idx >= stored.size || limit == 0) {
       return NilTuple
     }
     val next_tuple = stored(idx)

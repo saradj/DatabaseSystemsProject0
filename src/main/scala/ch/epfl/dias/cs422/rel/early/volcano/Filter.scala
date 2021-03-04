@@ -43,7 +43,7 @@ class Filter protected (
       //no more input
     } else {
       //
-      if (predicate(next_tuple.get))
+      if (predicate(next_tuple.get)) //check the predicate
         next_tuple
       else this.next()
     }

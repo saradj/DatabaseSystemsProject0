@@ -32,7 +32,7 @@ class Scan protected (
   )
 
   protected var row_index: Int = 0
-  protected var storage : IndexedSeq[Tuple] = _
+  protected var storage: IndexedSeq[Tuple] = _
   protected var row_count = 0
 
   /**
@@ -56,11 +56,10 @@ class Scan protected (
     row_index = 0
     storage = IndexedSeq[Tuple]()
     row_count = scannable.getRowCount.asInstanceOf[Int]
-    for(i <- 0 until row_count)
-    {
+    for (i <- 0 until row_count) {
       storage = storage :+ scannable.asInstanceOf[RowStore].getRow(i)
     }
-  }; //TODO STORE IN A TABLE TO OPTIMIZE MAYBE
+  }
 
   /**
     * @inheritdoc
